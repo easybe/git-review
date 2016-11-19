@@ -1372,6 +1372,9 @@ def _main():
                        const="download",
                        help="Download the contents of an existing gerrit "
                             "review into a branch")
+    parser.add_argument("-b", "--local-branch", dest="local_branch",
+                        metavar="BRANCH",
+                        help="Local branch to dowload to")
     fetch.add_argument("-x", "--cherrypick", dest="changeidentifier",
                        action=DownloadFlag, metavar="CHANGE",
                        const="cherrypickcommit",
@@ -1502,6 +1505,8 @@ def _main():
         local_branch, remote_branch = fetch_review(options.changeidentifier,
                                                    branch, remote)
         if options.download:
+            if options.local_branch:
+                local_branch = options.local_branch
             checkout_review(local_branch, remote, remote_branch)
         else:
             if options.cherrypickcommit:

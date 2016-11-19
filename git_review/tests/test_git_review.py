@@ -143,6 +143,36 @@ class GitReviewTestCase(tests.BaseGitReviewTestCase):
             'refs/remotes/%s/master' % self._remote,
             self._run_git("for-each-ref", "--format='%(upstream)'", head))
 
+    def test_git_review_d_with_custom_local_branch(self):
+        """Test git-review -d with custom local branch."""
+        self._run_git_review('-s')
+
+        # create new review to be downloaded
+        self._simple_change('test file modified', 'test commit message')
+        self._run_git_review()
+        change_id = self._run_git('log', '-1').split()[-1]
+
+        shutil.rmtree(self.test_dir)
+
+        # download clean Git repository and fresh change from Gerrit to it
+        self._run_git('clone', self.project_uri)
+        self.configure_gerrit_remote()
+        self._run_git_review('-d', change_id, '-b', 'test_branch')
+        curr_branch = self._run_git('rev-parse', '--abbrev-ref', 'HEAD')
+        self.assertEqual('test_branch', curr_branch)
+
+        # amend, submit
+        message = self._run_git('log', '-1', '--format=%s\n\n%b')
+        self._run_git('commit', '--amend', '-m', 'new ' + message)
+        self._run_git_review()
+
+        # download to existing local branch
+        self._run_git('checkout', 'master')
+        self._run_git_review('-d', change_id, '-b', 'test_branch')
+        curr_branch = self._run_git('rev-parse', '--abbrev-ref', 'HEAD')
+        self.assertEqual('test_branch', curr_branch)
+        self.assertIn('new test commit message', self._run_git('log', '-1'))
+
     def test_multiple_changes(self):
         """Test git-review asks about multiple changes.
 
