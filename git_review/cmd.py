@@ -71,7 +71,11 @@ def print_safe_encoding(str):
     if sys.stdout.encoding is None:
         print(str)
     else:
-        print(str.encode(sys.stdout.encoding, 'replace'))
+        try:
+            stdout = sys.stdout.buffer
+        except AttributeError:
+            stdout = sys.stdout
+        stdout.write(str.encode(sys.stdout.encoding, 'replace') + b'\n')
 
 
 class colors(object):
