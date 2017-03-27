@@ -1190,15 +1190,6 @@ def checkout_review(branch_name, remote, remote_branch):
     except CheckoutNewBranchFailed as e:
         if re.search("already exists\.?", e.output):
             print("Branch %s already exists - reusing" % branch_name)
-            track_remote, track_branch = parse_tracking(
-                ref='refs/heads/' + branch_name)
-            if track_remote and not (track_remote == remote and
-                                     track_branch == remote_branch):
-                print("Branch %s incorrectly tracking %s/%s instead of %s/%s"
-                      % (branch_name,
-                         track_remote, track_branch,
-                         remote, remote_branch))
-                raise BranchTrackingMismatch
             run_command_exc(CheckoutExistingBranchFailed,
                             "git", "checkout", branch_name)
             run_command_exc(ResetHardFailed,
